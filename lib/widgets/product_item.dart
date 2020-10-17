@@ -31,8 +31,9 @@ class ProductItem extends StatelessWidget {
         backgroundColor: Colors.black54,
         leading: IconButton(
           color: Colors.orange[500],
-          icon:
-              Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
+          icon: Icon(product.isFavorite == true
+              ? Icons.favorite
+              : Icons.favorite_border),
           onPressed: () {
             product.toggleFavorite();
           },
@@ -42,6 +43,17 @@ class ProductItem extends StatelessWidget {
           splashRadius: 30,
           onPressed: () {
             cart.addItem(product.id, product.title, product.price);
+            Scaffold.of(context).hideCurrentSnackBar();
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text("Added to cart"),
+              duration: Duration(seconds: 2),
+              action: SnackBarAction(
+                label: "Undo",
+                onPressed: () {
+                  cart.removeSingleItem(product.id);
+                },
+              ),
+            ));
           },
           color: Colors.orange[100],
           icon: Icon(Icons.add_shopping_cart),

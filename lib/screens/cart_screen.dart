@@ -37,9 +37,11 @@ class CartView extends StatelessWidget {
                   ),
                   FlatButton(
                     onPressed: () {
-                      Provider.of<Order>(context, listen: false).addOrder(
-                          cart.items.values.toList(), cart.totalAmount);
-                      cart.clear();
+                      if (cart.items.length > 0) {
+                        Provider.of<Order>(context, listen: false).addOrder(
+                            cart.items.values.toList(), cart.totalAmount);
+                        cart.clear();
+                      }
                     },
                     child: Text(
                       "Order Now",

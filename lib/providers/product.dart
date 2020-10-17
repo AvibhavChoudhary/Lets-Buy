@@ -13,7 +13,7 @@ class Product with ChangeNotifier {
     @required this.id,
     @required this.imageUrl,
     @required this.price,
-    @required this.isFavorite,
+    this.isFavorite,
     @required this.title,
   });
 

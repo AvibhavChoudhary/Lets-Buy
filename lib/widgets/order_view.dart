@@ -24,9 +24,9 @@ class _OrderItemViewState extends State<OrderItemView> {
             leading: CircleAvatar(
               child: Text("₹"),
             ),
-            title: Text("${widget.order.amount}"),
-            subtitle: Text(
-                DateFormat("dd MM yyyy hh:mm").format(widget.order.dateTime)),
+            title: Text("Total Amount:${widget.order.amount}"),
+            subtitle:
+                Text(DateFormat.MMMd().add_Hm().format(widget.order.dateTime)),
             trailing: IconButton(
               icon: Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
               onPressed: () {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myshop/providers/cart.dart';
+import 'package:myshop/providers/products.dart';
 import 'package:myshop/screens/cart_screen.dart';
 import 'package:myshop/widgets/badge.dart';
 import 'package:myshop/widgets/drawer.dart';
@@ -17,6 +18,28 @@ class ProductList extends StatefulWidget {
 
 class _ProductListState extends State<ProductList> {
   var _showFavorite = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<Products>(context).fetchData().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
+
+  Future<void> _onRefresh() async {
+    await Provider.of<Products>(context, listen: false).fetchData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +83,12 @@ class _ProductListState extends State<ProductList> {
         ],
       ),
       drawer: MyDrwaer(),
-      body: ProductGrid(_showFavorite),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : RefreshIndicator(
+              onRefresh: _onRefresh, child: ProductGrid(_showFavorite)),
     );
   }
 }

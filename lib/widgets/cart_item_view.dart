@@ -53,12 +53,15 @@ class CartItemView extends StatelessWidget {
         child: Icon(Icons.delete, color: Colors.white, size: 40),
       ),
       child: Card(
-          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+          margin: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Consumer<Products>(
             builder: (_, product, ch) => ListTile(
-              leading: Image.network(
-                product.findByID(id).imageUrl,
-                fit: BoxFit.contain,
+              leading: Container(
+                width: 65,
+                child: Image.network(
+                  product.findByID(id).imageUrl,
+                  fit: BoxFit.contain,
+                ),
               ),
               title: Text(
                 title,
@@ -69,12 +72,8 @@ class CartItemView extends StatelessWidget {
                 style: TextStyle(fontSize: 13),
               ),
               trailing: Container(
+                width: 155,
                 child: Row(children: [
-                  Text(
-                    "₹$price X $quantity",
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w200),
-                  ),
-                  Spacer(),
                   IconButton(
                     icon: Icon(Icons.remove),
                     onPressed: () {
@@ -83,12 +82,19 @@ class CartItemView extends StatelessWidget {
                     },
                     color: Colors.red,
                     iconSize: 20,
-                  )
+                  ),
+                  Text(
+                    "₹$price X $quantity",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w200),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      cart.increaseItem(id);
+                    },
+                    color: Colors.green,
+                  ),
                 ]),
-                width: 120,
-                constraints: BoxConstraints(
-                  maxWidth: 120,
-                ),
               ),
             ),
           )),

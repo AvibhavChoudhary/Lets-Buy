@@ -1,73 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:myshop/providers/product.dart';
 
 class Products with ChangeNotifier {
-  List<Product> _items = [
-    Product(
-        description: "This is the tshirt",
-        id: "p1",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2017/08/10/08/00/shirt-2619788__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Cool T-shirt"),
-    Product(
-        description: "This is the tshirt",
-        id: "p2",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2016/08/15/19/57/red-devils-1596355__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Cool T-shirt"),
-    Product(
-        description: "Awesome jeans",
-        id: "p3",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2016/08/15/19/57/red-devils-1596355__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Jeans"),
-    Product(
-        description: "Jeans",
-        id: "p4",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2014/12/11/10/11/jeans-564061__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Jeans"),
-    Product(
-        description: "Shirt",
-        id: "p5",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2015/09/02/13/18/person-918986__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Shirt"),
-    Product(
-        description: "Shirt",
-        id: "p6",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2014/08/05/10/31/waiting-410328__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Shirt"),
-    Product(
-        description: "Hoodie",
-        id: "p7",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2017/08/07/01/37/people-2598484__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Hoodie"),
-    Product(
-        description: "Hoodie",
-        id: "p8",
-        imageUrl:
-            "https://cdn.pixabay.com/photo/2017/07/31/11/38/cold-2557518__340.jpg",
-        price: 500,
-        isFavorite: false,
-        title: "Hoodie"),
-  ];
+  CollectionReference ref = FirebaseFirestore.instance.collection("Products");
+  List<Product> _items = [];
+
   List<Product> get items {
     return [..._items];
   }
@@ -80,26 +18,80 @@ class Products with ChangeNotifier {
     return _items.where((element) => element.isFavorite).toList();
   }
 
-  void addProduct(Product product) {
-    final newProduct = Product(
-        description: product.description,
-        id: DateTime.now().toString(),
-        imageUrl: product.imageUrl,
-        price: product.price,
-        title: product.title);
-    _items.add(newProduct);
-    notifyListeners();
+  Future<void> addProduct(Product product) {
+    return ref.add({
+      "description": product.description,
+      "id": DateTime.now().toString(),
+      "imageUrl": product.imageUrl,
+      "price": product.price,
+      "isFavorite": product.isFavorite,
+      "title": product.title,
+    }).then((response) {
+      print(response);
+      final newProduct = Product(
+          description: product.description,
+          id: response.id,
+          imageUrl: product.imageUrl,
+          price: product.price,
+          isFavorite: product.isFavorite,
+          title: product.title);
+      _items.add(newProduct);
+      print(newProduct.id);
+      notifyListeners();
+    }).catchError((error) {
+      print(error);
+      throw error;
+    });
   }
 
-  void deleteProduct(String id) {
-    var index = _items.indexWhere((prod) => prod.id == id);
-    _items.removeAt(index);
-    notifyListeners();
+  Future<void> fetchData() async {
+    final List<Product> loadedProducts = [];
+    try {
+      await ref.get().then((snapshot) => {
+            snapshot.docs.forEach((doc) {
+              loadedProducts.add(Product(
+                  description: doc.data()["description"],
+                  id: doc.id,
+                  imageUrl: doc.data()["imageUrl"],
+                  price: doc.data()["price"],
+                  title: doc.data()["title"],
+                  isFavorite: doc.data()["isFavorite"]));
+              _items = loadedProducts;
+              notifyListeners();
+            })
+          });
+    } catch (error) {
+      print(error);
+      throw error;
+    }
   }
 
-  void updateProduct(String id, Product product) {
+  Future<void> deleteProduct(String id) async {
+    final existingIndex = _items.indexWhere((element) => element.id == id);
+    var existingProduct = _items[existingIndex];
+
+    ref.doc(id).delete().then((_) {
+      existingProduct = null;
+    }).catchError((error) {
+      print("error chala");
+      _items.insert(existingIndex, existingProduct);
+      notifyListeners();
+    });
+    _items.removeAt(existingIndex);
+    notifyListeners();
+    // var index = _items.indexWhere((prod) => prod.id == id);
+    // _items.removeAt(index);
+  }
+
+  Future<void> updateProduct(String id, Product product) async {
     var index = _items.indexWhere((prod) => prod.id == id);
     if (index >= 0) {
+      await ref.doc(id).update({
+        "title": product.title,
+        "description": product.description,
+        "price": product.price,
+        "imageUrl": product.imageUrl,
+      });
       _items[index] = product;
       notifyListeners();
     } else {

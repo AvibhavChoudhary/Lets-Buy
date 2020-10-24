@@ -43,10 +43,14 @@ class _OrderScreenState extends State<OrderScreen> {
                   );
                 } else {
                   return Consumer<Order>(builder: (ctx, orderData, child) {
-                    return ListView.builder(
-                        itemCount: orderData.orders.length,
-                        itemBuilder: (ctx, index) =>
-                            OrderItemView(orderData.orders[index]));
+                    return orderData.orders.length == 0
+                        ? Center(
+                            child: Text("No order yet."),
+                          )
+                        : ListView.builder(
+                            itemCount: orderData.orders.length,
+                            itemBuilder: (ctx, index) =>
+                                OrderItemView(orderData.orders[index]));
                   });
                 }
               }

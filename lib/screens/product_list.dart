@@ -89,6 +89,16 @@ class _ProductListState extends State<ProductList> {
             )
           : RefreshIndicator(
               onRefresh: _onRefresh, child: ProductGrid(_showFavorite)),
+      // body: FutureBuilder(
+      //     future: _onRefresh(),
+      //     builder: (ctx, snapshot) =>
+      //         snapshot.connectionState == ConnectionState.waiting
+      //             ? Center(
+      //                 child: CircularProgressIndicator(),
+      //               )
+      //             : RefreshIndicator(
+      //                 child: ProductGrid(_showFavorite),
+      //                 onRefresh: _onRefresh)),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myshop/providers/cart.dart';
 
@@ -19,6 +20,7 @@ class OrderItem {
 class Order with ChangeNotifier {
   List<OrderItem> _orders = [];
   CollectionReference ref = FirebaseFirestore.instance.collection("Orders");
+  FirebaseAuth auth = FirebaseAuth.instance;
 
   List<OrderItem> get orders {
     return [..._orders];
@@ -26,7 +28,10 @@ class Order with ChangeNotifier {
 
   Future<void> fetchData() async {
     final List<OrderItem> loadedOrder = [];
-    ref.get().then((snapshot) {
+    ref
+        .where("creatorId", isEqualTo: auth.currentUser.uid)
+        .get()
+        .then((snapshot) {
       snapshot.docs.forEach((doc) {
         loadedOrder.add(OrderItem(
             amount: doc.data()["amount"],
@@ -52,6 +57,7 @@ class Order with ChangeNotifier {
   Future<void> addOrder(List<CartItem> cartProducts, int total) async {
     final timestamp = DateTime.now();
     ref.add({
+      "creatorId": auth.currentUser.uid,
       "id": DateTime.now().toString(),
       "amount": total,
       "dateTime": timestamp.toIso8601String(),

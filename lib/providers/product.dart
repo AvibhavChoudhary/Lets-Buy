@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Product with ChangeNotifier {
@@ -20,15 +19,7 @@ class Product with ChangeNotifier {
 
   Future<void> toggleFavorite() async {
     print(isFavorite);
-    final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
-    await FirebaseFirestore.instance
-        .collection("Products")
-        .doc(id)
-        .update({"isFavorite": isFavorite}).catchError((error) {
-      isFavorite = oldStatus;
-      notifyListeners();
-    });
   }
 }

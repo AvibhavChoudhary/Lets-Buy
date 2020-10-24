@@ -1,13 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myshop/providers/product.dart';
 
 class Products with ChangeNotifier {
   CollectionReference ref = FirebaseFirestore.instance.collection("Products");
+  FirebaseAuth auth = FirebaseAuth.instance;
   List<Product> _items = [];
+  List<Product> _manageProducts = [];
 
   List<Product> get items {
     return [..._items];
+  }
+
+  List<Product> get manageproducts {
+    return [..._manageProducts];
   }
 
   Product findByID(String id) {
@@ -26,6 +33,7 @@ class Products with ChangeNotifier {
       "price": product.price,
       "isFavorite": product.isFavorite,
       "title": product.title,
+      "creatorId": auth.currentUser.uid,
     }).then((response) {
       print(response);
       final newProduct = Product(
@@ -44,22 +52,43 @@ class Products with ChangeNotifier {
     });
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchData([bool filterStatus = false]) async {
     final List<Product> loadedProducts = [];
     try {
-      await ref.get().then((snapshot) => {
-            snapshot.docs.forEach((doc) {
-              loadedProducts.add(Product(
+      if (filterStatus) {
+        await ref
+            .where("creatorId", isEqualTo: auth.currentUser.uid)
+            .get()
+            .then((snapshot) => {
+                  snapshot.docs.forEach((doc) {
+                    loadedProducts.add(Product(
+                      description: doc.data()["description"],
+                      id: doc.id,
+                      imageUrl: doc.data()["imageUrl"],
+                      price: doc.data()["price"],
+                      title: doc.data()["title"],
+                      isFavorite: doc.data()["isFavorite"],
+                    ));
+                    _manageProducts = loadedProducts;
+                    notifyListeners();
+                  })
+                });
+      } else {
+        await ref.get().then((snapshot) => {
+              snapshot.docs.forEach((doc) {
+                loadedProducts.add(Product(
                   description: doc.data()["description"],
                   id: doc.id,
                   imageUrl: doc.data()["imageUrl"],
                   price: doc.data()["price"],
                   title: doc.data()["title"],
-                  isFavorite: doc.data()["isFavorite"]));
-              _items = loadedProducts;
-              notifyListeners();
-            })
-          });
+                  isFavorite: doc.data()["isFavorite"],
+                ));
+                _items = loadedProducts;
+                notifyListeners();
+              })
+            });
+      }
     } catch (error) {
       print(error);
       throw error;

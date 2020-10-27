@@ -77,12 +77,28 @@ class AuthCard extends StatefulWidget {
   _AuthCardState createState() => _AuthCardState();
 }
 
-class _AuthCardState extends State<AuthCard> {
+class _AuthCardState extends State<AuthCard>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey();
   AuthMode _authMode = AuthMode.Login;
   Map<String, String> _authData = {"email": "", "password": ""};
   var _isLoading = false;
   final _passwordController = TextEditingController();
+  AnimationController _animationController;
+  Animation<Offset> _slideAnimation;
+  Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 400));
+    _slideAnimation = Tween<Offset>(begin: Offset(0, -2), end: Offset(0, 0))
+        .animate(CurvedAnimation(
+            parent: _animationController, curve: Curves.fastOutSlowIn));
+    _opacityAnimation = Tween(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+  }
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -144,10 +160,12 @@ class _AuthCardState extends State<AuthCard> {
       setState(() {
         _authMode = AuthMode.SignUp;
       });
+      _animationController.forward();
     } else {
       setState(() {
         _authMode = AuthMode.Login;
       });
+      _animationController.reverse();
     }
   }
 
@@ -157,7 +175,9 @@ class _AuthCardState extends State<AuthCard> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 400),
+        curve: Curves.fastOutSlowIn,
         height: _authMode == AuthMode.SignUp ? 360 : 260,
         constraints: BoxConstraints(
           minHeight: _authMode == AuthMode.SignUp ? 360 : 260,
@@ -196,20 +216,31 @@ class _AuthCardState extends State<AuthCard> {
                     _authData["password"] = value;
                   },
                 ),
-                if (_authMode == AuthMode.SignUp)
-                  TextFormField(
-                      enabled: _authMode == AuthMode.SignUp,
-                      decoration:
-                          InputDecoration(labelText: "Confirm Password"),
-                      obscureText: true,
-                      validator: _authMode == AuthMode.SignUp
-                          ? (value) {
-                              if (value != _passwordController.text) {
-                                return "Password does not match";
-                              }
-                              return null;
-                            }
-                          : null),
+                AnimatedContainer(
+                  duration: Duration(microseconds: 400),
+                  constraints: BoxConstraints(
+                      minHeight: _authMode == AuthMode.SignUp ? 60 : 0,
+                      maxHeight: _authMode == AuthMode.SignUp ? 120 : 0),
+                  child: FadeTransition(
+                    opacity: _opacityAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: TextFormField(
+                          enabled: _authMode == AuthMode.SignUp,
+                          decoration:
+                              InputDecoration(labelText: "Confirm Password"),
+                          obscureText: true,
+                          validator: _authMode == AuthMode.SignUp
+                              ? (value) {
+                                  if (value != _passwordController.text) {
+                                    return "Password does not match";
+                                  }
+                                  return null;
+                                }
+                              : null),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   height: 20,
                 ),

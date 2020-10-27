@@ -14,6 +14,7 @@ import 'package:myshop/screens/product_list.dart';
 import 'package:myshop/screens/splash_screen.dart';
 import 'package:myshop/screens/user_product_screen.dart';
 import 'package:provider/provider.dart';
+import 'helper/custom_page_route.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,13 @@ class MyApp extends StatelessWidget {
                       authResult.connectionState == ConnectionState.waiting
                           ? SplashScreen()
                           : AuthScreen()),
-          theme: ThemeData(primarySwatch: Colors.teal, fontFamily: "Quicksand"),
+          theme: ThemeData(
+              primarySwatch: Colors.teal,
+              fontFamily: "Quicksand",
+              pageTransitionsTheme: PageTransitionsTheme(builders: {
+                TargetPlatform.android: CustomTransitionBuilder(),
+                TargetPlatform.iOS: CustomTransitionBuilder(),
+              })),
           routes: {
             ProductDetail.routeName: (ctx) => ProductDetail(),
             CartView.routeName: (ctx) => CartView(),
